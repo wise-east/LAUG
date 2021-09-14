@@ -1,0 +1,2 @@
+- Using an updated version of PyTorch works with this repo. Make sure to install the version that works with your GPU's CUDA driver. 
+- I updated the transformers version to be able to use `model.generate` 
