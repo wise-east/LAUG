@@ -10,10 +10,12 @@ import json
 from LAUG.nlg.scgpt.utils import dict2dict, dict2seq
 
 cur_dir = os.path.dirname(os.path.abspath(__file__)) 
+print(cur_dir)
 data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
         cur_dir)))), 'data/multiwoz/')
 
-with open(os.path.join(data_dir, '0807_final.json'),'r', encoding='utf8') as f:
+# with open(os.path.join(data_dir, '0807_final.json'),'r', encoding='utf8') as f:
+with open(os.path.join(data_dir, '1009_merge.json'),'r', encoding='utf8') as f:
     data = json.load(f)
 
 with open(os.path.join(data_dir, 'valListFile'), 'r') as f:

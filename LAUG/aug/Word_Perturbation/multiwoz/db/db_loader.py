@@ -30,7 +30,7 @@ class BaseDBLoader(ABC):
 
 class DBLoader(BaseDBLoader):
     def __init__(self, db_dir):
-        assert db_dir and os.path.isdir(db_dir)
+        assert db_dir and os.path.isdir(db_dir), f"dir not found: {db_dir}"
         self.db_dir = db_dir
         self.db_files = list_db_filepath(db_dir)  # domain -->  filepath
         self.db_cache = {}  # domain --> List[dict]

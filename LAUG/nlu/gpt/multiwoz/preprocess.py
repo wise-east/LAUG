@@ -7,7 +7,8 @@ Created on Mon Sep 14 11:38:53 2020
 import os
 import json
 import zipfile
-from convlab2.nlg.scgpt.utils import dict2dict, dict2seq
+from sys import argv
+from LAUG.nlg.scgpt.utils import dict2dict, dict2seq
 
 def read_zipped_json(filepath, filename):
     print("zip file path = ", filepath)
@@ -16,6 +17,8 @@ def read_zipped_json(filepath, filename):
 
 if __name__ == '__main__':
 
+    sub_dir = argv[1] if len(argv)>1 else ""
+
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
             cur_dir)))), 'data/multiwoz/')
@@ -23,7 +26,7 @@ if __name__ == '__main__':
     keys = ['train', 'val', 'test']
     data = {}
     for key in keys:
-        data_key = read_zipped_json(os.path.join(data_dir, key + '.json.zip'), key + '.json')
+        data_key = read_zipped_json(os.path.join(data_dir + sub_dir, key + '.json.zip'), key + '.json')
         print('load {}, size {}'.format(key, len(data_key)))
         data = dict(data, **data_key)
 
@@ -114,5 +117,10 @@ if __name__ == '__main__':
     k = 3
     if not os.path.exists(os.path.join(cur_dir,'data')):
         os.makedirs(os.path.join(cur_dir, 'data'))
-    write_file(os.path.join(cur_dir, 'data/train'), dict(results, **results_val), k)
-    write_file(os.path.join(cur_dir, 'data/test'), results_test, k)
+
+    if sub_dir: 
+        write_file(os.path.join(cur_dir, f'data/train_{sub_dir.lower()}'), dict(results, **results_val), k)
+        write_file(os.path.join(cur_dir, f'data/test_{sub_dir.lower()}'), results_test, k)
+    else: 
+        write_file(os.path.join(cur_dir, 'data/train'), dict(results, **results_val), k)
+        write_file(os.path.join(cur_dir, 'data/test'), results_test, k)

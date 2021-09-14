@@ -65,6 +65,8 @@ def seq2dict(s):
             if cur == 0:
                 domain.append(ch)
             elif cur == 1:
+                if isinstance(intent, str): 
+                    print(intent, s)
                 intent.append(ch)
             elif cur == 2:
                 slot.append(ch)

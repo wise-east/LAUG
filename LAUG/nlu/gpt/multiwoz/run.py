@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 MAX_LENGTH = int(10000)  # Hardcoded max length to avoid infinite loop
 
-ALL_MODELS = sum((tuple(conf.pretrained_config_archive_map.keys()) for conf in (GPT2Config, OpenAIGPTConfig, XLNetConfig, TransfoXLConfig, XLMConfig, CTRLConfig)), ())
+# ALL_MODELS = sum((tuple(conf.pretrained_config_archive_map.keys()) for conf in (GPT2Config, OpenAIGPTConfig, XLNetConfig, TransfoXLConfig, XLMConfig, CTRLConfig)), ())
 
 MODEL_CLASSES = {
     'gpt2': (GPT2LMHeadModel, GPT2Tokenizer),
@@ -64,7 +64,7 @@ def main():
     parser.add_argument("--model_type", default=None, type=str, required=True,
                         help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()))
     parser.add_argument("--model_name_or_path", default=None, type=str, required=True,
-                        help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(ALL_MODELS))
+                        help="Path to pre-trained model or shortcut name")
     parser.add_argument("--prompt", type=str, default="")
     parser.add_argument("--padding_text", type=str, default="")
     parser.add_argument("--length", type=int, default=40)
@@ -130,6 +130,7 @@ def main():
             raw_inputs.append(raw_text)
         
         encoding_inputs = tokenizer.batch_encode_plus(raw_inputs, pad_to_max_length=True, add_special_tokens=False)
+        # print(encoding_inputs['input_ids'])
         context_tokens = torch.LongTensor(encoding_inputs['input_ids']).to(args.device)
         max_length = len(context_tokens[0])
         attention_mask = torch.LongTensor(encoding_inputs['attention_mask']).to(args.device)
@@ -139,10 +140,45 @@ def main():
         if args.model_type == "ctrl":
             if not any(context_tokens[0] == x for x in tokenizer.control_codes.values()):
                 logger.info("WARNING! You are not starting your generation from a control code so you won't get good results")
+        # out_ids = model.generate(
+        #     input_ids=context_tokens,
+        #     attention_mask=attention_mask,
+        #     position_ids=position_ids,
+        #     num_beams=args.num_samples,
+        #     num_return_sequences=args.num_samples,
+        #     max_length=args.length,
+        #     temperature=args.temperature,
+        #     do_sample=True,
+        #     top_k=args.top_k,
+        #     top_p=args.top_p,
+        #     repetition_penalty=args.repetition_penalty
+        # )
+
+    #         def generate(
+    #     self,
+    #     input_ids=None,
+    #     max_length=None,
+    #     min_length=None,
+    #     do_sample=None,
+    #     early_stopping=None,
+    #     num_beams=None,
+    #     temperature=None,
+    #     top_k=None,
+    #     top_p=None,
+    #     repetition_penalty=None,
+    #     bad_words_ids=None,
+    #     bos_token_id=None,
+    #     pad_token_id=None,
+    #     eos_token_id=None,
+    #     length_penalty=None,
+    #     no_repeat_ngram_size=None,
+    #     num_return_sequences=None,
+    #     attention_mask=None,
+    #     decoder_start_token_id=None,
+    # )
         out_ids = model.generate(
             input_ids=context_tokens,
             attention_mask=attention_mask,
-            position_ids=position_ids,
             num_beams=args.num_samples,
             num_return_sequences=args.num_samples,
             max_length=args.length,

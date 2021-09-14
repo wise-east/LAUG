@@ -8,6 +8,7 @@ import pickle
 import random
 import re
 import shutil
+import json
 
 import sys
 
@@ -90,7 +91,7 @@ class TextSeqDataset(Dataset):
     def __init__(self, tokenizer, args, file_path='train', block_size=512, max_seq=80, seperator=' & '):
         assert os.path.isfile(file_path)
         directory, filename = os.path.split(file_path)
-        cached_features_file = os.path.join(directory, args.output_dir.replace(os.sep, '_') + '_cached_lm_' + str(block_size) + '_seqlen_' + str(max_seq) + '_' + filename)
+        cached_features_file = os.path.join(directory, args.output_dir.replace(os.sep, '_') + '_cached_lm_seqlen_' + str(max_seq) + '_' + filename)
 
         if os.path.exists(cached_features_file) and not args.overwrite_cache:
             logger.info("Loading features from cached file %s", cached_features_file)
@@ -270,12 +271,19 @@ def train(args, train_dataset, model, tokenizer):
     model.zero_grad()
     train_iterator = trange(int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0])
     set_seed(args)  # Added here for reproducibility (even between python 2 and 3)
+
+    # evaluate before training
+    results = evaluate(args, model, tokenizer)
+    for key, value in results.items():
+        tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
+
     for e in train_iterator:
         
         # epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(train_dataloader):
             # inputs, labels = mask_tokens(batch, tokenizer, args) if args.mlm else (batch, batch)
-            logger.info(f"  PROGRESS: {float(global_step)/t_total*100}%")
+            if step % 100 ==0: 
+                logger.info(f"  PROGRESS: {float(global_step)/t_total*100}%")
             inputs, masks, labels = batch
             # import pdb
             # pdb.set_trace()
@@ -334,6 +342,10 @@ def train(args, train_dataset, model, tokenizer):
 
                     _rotate_checkpoints(args, checkpoint_prefix)
 
+                    results = evaluate(args, model, tokenizer)
+                    for key, value in results.items():
+                        tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
+
             # if args.max_steps > 0 and global_step > args.max_steps:
                 # epoch_iterator.close()
                 # break
@@ -359,11 +371,12 @@ def evaluate(args, model, tokenizer, prefix=""):
     args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
     # Note that DistributedSampler samples randomly
     eval_sampler = SequentialSampler(eval_dataset) if args.local_rank == -1 else DistributedSampler(eval_dataset)
-    eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
+    eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size, drop_last=True)
 
     # multi-gpu evaluate
-    if args.n_gpu > 1:
+    if args.n_gpu > 1 and not isinstance(model, torch.nn.parallel.DataParallel):
         model = torch.nn.DataParallel(model)
+
 
     # Eval!
     logger.info("***** Running evaluation {} *****".format(prefix))
@@ -437,7 +450,7 @@ def main():
                         help="Optional pretrained tokenizer name or path if not the same as model_name_or_path")
     parser.add_argument("--cache_dir", default="", type=str,
                         help="Optional directory to store the pre-trained models downloaded from s3 (instread of the default one)")
-    parser.add_argument("--block_size", default=80, type=int,
+    parser.add_argument("--block_size", default=512, type=int,
                         help="Optional input sequence length after tokenization."
                              "The training dataset will be truncated in block of this size for training."
                              "Default to the model max input length for single sentence inputs (take into account special tokens).")
@@ -502,7 +515,7 @@ def main():
     parser.add_argument('--with_code_loss', type=bool, default=True, help="")
     parser.add_argument('--use_tokenize', action='store_true', help="")
 
-    parser.add_argument("--max_seq", default=80, type=int,
+    parser.add_argument("--max_seq", default=256, type=int,
                         help="")
 
     args = parser.parse_args()
@@ -599,8 +612,12 @@ def main():
         model_to_save.save_pretrained(args.output_dir)
         tokenizer.save_pretrained(args.output_dir)
 
+    
+
         # Good practice: save your training arguments together with the trained model
-        torch.save(args, os.path.join(args.output_dir, 'training_args.bin'))
+        # torch.save(args, os.path.join(args.output_dir, 'training_args.bin'))
+        with open(os.path.join(args.output_dir, 'training_args.bin'), 'w') as f:
+            json.dump(args.__dict__, f, indent=2)
 
         # Load a trained model and vocabulary that you have fine-tuned
         model = model_class.from_pretrained(args.output_dir)

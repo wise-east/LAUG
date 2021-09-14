@@ -3,10 +3,11 @@
 
 from typing import Dict, List, Any
 
-from allennlp.training.metrics.metric import Metric
+# from allennlp.training.metrics.metric import Metric
 
 
-class DialogActItemF1Measure(Metric):
+# class DialogActItemF1Measure(Metric):
+class DialogActItemF1Measure():
     """
     """
     def __init__(self) -> None:

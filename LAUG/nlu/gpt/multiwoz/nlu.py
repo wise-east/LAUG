@@ -3,10 +3,10 @@ import os
 import zipfile
 
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from convlab2.nlu.gpt.utils import seq2dict
-from convlab2.nlu.gpt.decode import set_seed, sample_sequence
-from convlab2.nlu.nlu import NLU
-from convlab2.util.file_util import cached_path
+from LAUG.nlu.gpt.utils import seq2dict
+from LAUG.nlu.gpt.decode import set_seed, sample_sequence
+from LAUG.nlu.nlu import NLU
+from LAUG.util.file_util import cached_path
 
 MAX_LENGTH = int(10000)  # Hardcoded max length to avoid infinite loop
 DEFAULT_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")

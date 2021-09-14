@@ -1,0 +1,16 @@
+**__pycache__**
+data/
+LAUG.egg-info/
+*.txt
+LAUG/aug/Speech_Disfluency/model/
+LAUG/aug/Speech_Disfluency/resources/
+LAUG/aug/Speech_Recognition/deepspeech-0.9.3-models.pbmm
+LAUG/aug/Speech_Recognition/deepspeech-0.9.3-models.scorer
+LAUG/aug/Word_Perturbation/db/
+LAUG/aug/temp.mp3
+LAUG/aug/temp.wav
+LAUG/nlg/scgpt/multiwoz/multiwoz/
+LAUG/nlg/scgpt/scgpt/
+LAUG/nlu/diffs.json
+LAUG/nlu/gpt/output/
+LAUG/nlu/gpt/runs/

@@ -19,7 +19,7 @@ def prepare_sequence(seq, to_ix):
 	return torch.tensor(idxs, dtype=torch.long)
 
 # Put your dir to glove here
-glove_file='[dir_to]/glove.6B.100d.txt'
+glove_file='/data/home/justincho/project/LAUG/glove/glove.6B.100d.txt'
 
 word_to_ix={}
 max=20000
